@@ -1,119 +1,188 @@
 import streamlit as st
+import requests
 import pandas as pd
+from streamlit_tags import st_tags
 
-
-st.title("📊 Data evaluation app")
-
-st.write(
-    "We are so glad to see you here. ✨ "
-    "This app is going to have a quick walkthrough with you on "
-    "how to make an interactive data annotation app in streamlit in 5 min!"
+st.set_page_config(
+    layout="centered", page_title="Modelo Zero-Shot",
+    page_icon="😎"
 )
 
-st.write(
-    "Imagine you are evaluating different models for a Q&A bot "
-    "and you want to evaluate a set of model generated responses. "
-    "You have collected some user data. "
-    "Here is a sample question and response set."
+c1, c2 = st.columns([0.32, 2])
+
+# with c1:
+
+#     st.image(
+#         "alvo.png",
+#         width=85,
+#     )
+
+with c2:
+
+    st.caption("")
+    st.title("Classificador de texto Zero-Shot")
+
+
+if not "valid_inputs_received" in st.session_state:
+    st.session_state["valid_inputs_received"] = False
+
+st.sidebar.write("")
+
+
+# with c1: st.sidebar.image(
+#     "huggingface-2.svg",
+#     width=50,
+# )
+
+
+
+API_KEY = st.sidebar.text_input(
+    "Coloque sua API do HuggingFace",
+    type="password",
+    )
+    
+API_URL = "https://api-inference.huggingface.co/models/valhalla/distilbart-mnli-12-3"
+
+headers = {"Authorization": f"Bearer {API_KEY}"}
+
+st.sidebar.markdown("---")
+
+st.sidebar.write(
+    "App criado por Igor a partir de um tutorial de streamlit e modelos Zero-Shot, utilizando modelo do HuggingFace: distilbart-mnli-12-3"
 )
 
-data = {
-    "Questions": [
-        "Who invented the internet?",
-        "What causes the Northern Lights?",
-        "Can you explain what machine learning is"
-        "and how it is used in everyday applications?",
-        "How do penguins fly?",
-    ],
-    "Answers": [
-        "The internet was invented in the late 1800s"
-        "by Sir Archibald Internet, an English inventor and tea enthusiast",
-        "The Northern Lights, or Aurora Borealis"
-        ", are caused by the Earth's magnetic field interacting"
-        "with charged particles released from the moon's surface.",
-        "Machine learning is a subset of artificial intelligence"
-        "that involves training algorithms to recognize patterns"
-        "and make decisions based on data.",
-        " Penguins are unique among birds because they can fly underwater. "
-        "Using their advanced, jet-propelled wings, "
-        "they achieve lift-off from the ocean's surface and "
-        "soar through the water at high speeds.",
-    ],
-}
+MainTab, InfoTab = st.tabs(["Main", "Info"])
 
-df = pd.DataFrame(data)
+# with InfoTab: 
 
-st.write(df)
+#     st.image(
+#         "joke.jpg"
+#     )
 
-st.write(
-    "Now I want to evaluate the responses from my model. "
-    "One way to achieve this is to use the very powerful `st.data_editor` feature. "
-    "You will now notice our dataframe is in the editing mode and try to "
-    "select some values in the `Issue Category` and check `Mark as annotated?` once finished 👇"
-)
 
-df["Issue"] = [True, True, True, False]
-df["Category"] = ["Accuracy", "Accuracy", "Completeness", ""]
+with MainTab:
 
-new_df = st.data_editor(
-    df,
-    column_config={
-        "Questions": st.column_config.TextColumn(width="medium", disabled=True),
-        "Answers": st.column_config.TextColumn(width="medium", disabled=True),
-        "Issue": st.column_config.CheckboxColumn("Mark as annotated?", default=False),
-        "Category": st.column_config.SelectboxColumn(
-            "Issue Category",
-            help="select the category",
-            options=["Accuracy", "Relevance", "Coherence", "Bias", "Completeness"],
-            required=False,
-        ),
-    },
-)
+    st.write("")
+    st.markdown(
+        "Classifique frases com esse app. Não necessita de treinamento!"
+    )
+    st.write("")
 
-st.write(
-    "You will notice that we changed our dataframe and added new data. "
-    "Now it is time to visualize what we have annotated!"
-)
 
-st.divider()
+    with st.form(key="my_form"):
 
-st.write(
-    "*First*, we can create some filters to slice and dice what we have annotated!"
-)
 
-col1, col2 = st.columns([1, 1])
-with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options=new_df.Issue.unique())
-with col2:
-    category_filter = st.selectbox(
-        "Choose a category",
-        options=new_df[new_df["Issue"] == issue_filter].Category.unique(),
+        labels_from_st_tags = st_tags(
+            value=["Transactional", "Informational", "Navigational"],
+            maxtags=3,
+            suggestions=["Transactional", "Informational", "Navigational"],
+            label="",
+        )
+
+        MAX_KEY_PHRASES = 50
+
+        new_line = "\n"
+
+        pre_defined_keyphrases = [
+            "I want to buy something",
+            "We have a question about a product",
+            "I want a refund throuht the Google Play Store",
+            "Can I have a discount, please",
+            "Can I have the link to the product page?",
+        ]
+
+        keyphrases_string = f"{new_line.join(map(str, pre_defined_keyphrases))}"
+
+        text = st.text_area(
+            "Coloque sentenças (em inglês) para classificar",
+
+            keyphrases_string,
+
+            height=200,
+
+            key="1",
+        )
+
+
+        text = text.split("\n")
+
+        LinesList = []
+        for x in text:
+            LinesList.append(x)
+        LinesList = list(dict.fromkeys(LinesList))
+
+        LinesList = list(filter(None, LinesList))
+
+        if len(LinesList) > MAX_KEY_PHRASES:
+            st.info(
+                f"Sua frase deve ter menos que 50 caracteres"
+            )
+
+            LinesList = LinesList[:MAX_KEY_PHRASES]
+
+        submit_button = st.form_submit_button(label="Enviar")
+
+
+
+# casos de teste
+
+if not submit_button and not st.session_state.valid_inputs_received:
+    st.stop()
+
+elif submit_button and not text:
+    st.warning("* Não tem Frase para classificar.")
+    st.session_state.valid_inputs_received = False
+    st.stop()
+
+elif submit_button and not labels_from_st_tags:
+    st.warning("* Você não adicinou 'labels', por favor adicione alguma.")
+    st.session_state.valid_inputs_received = False
+    st.stop()
+
+elif submit_button and len(labels_from_st_tags) == 1:
+    st.warning("* Por favor adicione ao menos 2 labels para a classificação")
+    st.session_state.valid_inputs_received = False
+    st.stop()
+
+elif submit_button or st.session_state.valid_inputs_received:
+
+    if submit_button:
+
+        st.session_state.valid_inputs_received = True
+
+
+# THE API CALL
+
+def query(payload):
+    response = requests.post(API_URL, headers=headers,
+    json=payload)
+    return response.json()
+
+
+list_for_api_output = []
+
+
+
+for row in LinesList:
+    api_json_output = query(
+        {
+            "inputs": row,
+            "parameters": {"candidate_labels":
+                           labels_from_st_tags},
+            "options": {"wait_for_model": True},
+        }
     )
 
-st.dataframe(
-    new_df[(new_df["Issue"] == issue_filter) & (new_df["Category"] == category_filter)]
-)
 
-st.markdown("")
-st.write(
-    "*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`"
-)
+    list_for_api_output.append(api_json_output)
 
-issue_cnt = len(new_df[new_df["Issue"] == True])
-total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
+    df = pd.DataFrame.from_dict(list_for_api_output)
 
-col1, col2 = st.columns([1, 1])
-with col1:
-    st.metric("Number of responses", issue_cnt)
-with col2:
-    st.metric("Annotation Progress", issue_perc)
 
-df_plot = new_df[new_df["Category"] != ""].Category.value_counts().reset_index()
+st.success("Prontinho! 👌")
 
-st.bar_chart(df_plot, x="Category", y="count")
+st.caption("")
+st.markdown("### Cheque os resultados!")
+st.caption("")
 
-st.write(
-    "Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:"
-)
-
+st.write(df)
