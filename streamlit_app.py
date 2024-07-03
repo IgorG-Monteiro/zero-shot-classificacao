@@ -35,12 +35,13 @@ with c1: st.sidebar.image(
     width=50,
 )
 
-
+predefined-key = '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'
 
 API_KEY = st.sidebar.text_input(
     "Coloque sua API do HuggingFace",
     help="Para conseguir a chave da sua API, primeiro crie uma conta gratuita no HuggingFace, após isso vá em 'https://huggingface.co/settings/tokens' e crie seu token.",
     type="password",
+    value=predefined-key,
     )
     
 API_URL = "https://api-inference.huggingface.co/models/valhalla/distilbart-mnli-12-3"
