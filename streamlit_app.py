@@ -91,8 +91,7 @@ with MainTab:
             "O ar condicionado está muito frio.",
         ]
 
-        keyphrases_string = f"{new_line.join(map(str, 
-        pre_defined_keyphrases))}"
+        keyphrases_string = f"{new_line.join(map(str, pre_defined_keyphrases))}"
 
         text = st.text_area(
             "Coloque frases para classificar",
