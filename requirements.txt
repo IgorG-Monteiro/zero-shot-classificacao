@@ -2,3 +2,4 @@ streamlit
 streamlit-tags
 requests
 pandas
+plotly.express

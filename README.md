@@ -1,19 +1,17 @@
-# 📊 Data evaluation template
+# 📊 Classificador Zero-Shot
 
-A simple Streamlit app showing how to evaluate and annotate data, using dataframes
-and charts. 
+Um simples app em Streamlit para demonstrar o uso da API de inferência do hugging face utilizando o model 'distilbart-mnli-12-3' do usuário Valhalla, 
+para realizar prompts zero-shot e plotar gráficos sobre os resultados obtidos.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://data-evaluation-template.streamlit.app/)
+### Como rodar o código em sua máquina local
 
-### How to run it on your own machine
-
-1. Install the requirements
+1. Instale os requerimentos
 
    ```
    $ pip install -r requirements.txt
    ```
 
-2. Run the app
+2. Inicie o app
 
    ```
    $ streamlit run streamlit_app.py

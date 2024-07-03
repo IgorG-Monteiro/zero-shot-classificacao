@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import pandas as pd
+import plotly.express as px
 from streamlit_tags import st_tags
 
 st.set_page_config(
@@ -10,12 +11,12 @@ st.set_page_config(
 
 c1, c2 = st.columns([0.32, 2])
 
-# with c1:
+with c1:
 
-#     st.image(
-#         "alvo.png",
-#         width=85,
-#     )
+    st.image(
+        "images/alvo.png",
+        width=85,
+    )
 
 with c2:
 
@@ -29,15 +30,16 @@ if not "valid_inputs_received" in st.session_state:
 st.sidebar.write("")
 
 
-# with c1: st.sidebar.image(
-#     "huggingface-2.svg",
-#     width=50,
-# )
+with c1: st.sidebar.image(
+    "images/huggingface-2.svg",
+    width=50,
+)
 
 
 
 API_KEY = st.sidebar.text_input(
     "Coloque sua API do HuggingFace",
+    help="Para conseguir a chave da sua API, primeiro crie uma conta gratuita no HuggingFace, após isso vá em 'https://huggingface.co/settings/tokens' e crie seu token.",
     type="password",
     )
     
@@ -53,11 +55,11 @@ st.sidebar.write(
 
 MainTab, InfoTab = st.tabs(["Main", "Info"])
 
-# with InfoTab: 
+with InfoTab: 
 
-#     st.image(
-#         "joke.jpg"
-#     )
+    st.image(
+        "images/joke.jpg"
+    )
 
 
 with MainTab:
@@ -73,9 +75,9 @@ with MainTab:
 
 
         labels_from_st_tags = st_tags(
-            value=["Transactional", "Informational", "Navigational"],
+            value=["Clima", "Pergunta", "Afirmação"],
             maxtags=3,
-            suggestions=["Transactional", "Informational", "Navigational"],
+            suggestions=["Clima", "Pergunta", "Afirmação"],
             label="",
         )
 
@@ -84,17 +86,16 @@ with MainTab:
         new_line = "\n"
 
         pre_defined_keyphrases = [
-            "I want to buy something",
-            "We have a question about a product",
-            "I want a refund throuht the Google Play Store",
-            "Can I have a discount, please",
-            "Can I have the link to the product page?",
+            "Eu sou muito bom nisso!",
+            "Quanto custa esse sorvete?",
+            "O ar condicionado está muito frio.",
         ]
 
-        keyphrases_string = f"{new_line.join(map(str, pre_defined_keyphrases))}"
+        keyphrases_string = f"{new_line.join(map(str, 
+        pre_defined_keyphrases))}"
 
         text = st.text_area(
-            "Coloque sentenças (em inglês) para classificar",
+            "Coloque frases para classificar",
 
             keyphrases_string,
 
@@ -179,10 +180,39 @@ for row in LinesList:
     df = pd.DataFrame.from_dict(list_for_api_output)
 
 
+
+
 st.success("Prontinho! 👌")
 
 st.caption("")
 st.markdown("### Cheque os resultados!")
 st.caption("")
 
+
+def plot_bar(categories, scores, sentence):
+    df_plot = pd.DataFrame({'labels': categories, 'scores': scores, 'sequence': sentence})
+    fig = px.bar(df_plot, 
+                 x='scores', 
+                 y='labels', 
+                 orientation='h', 
+                 text='scores', 
+                 title=sentence,
+                 color='scores',
+                 color_continuous_scale='purples')
+    fig.update_traces(texttemplate='%{text:.3f}', textposition='outside', width=0.2)
+    fig.update_layout(
+        xaxis_title='Pontuação',
+        yaxis_title='Categorias',
+        yaxis=dict(tickmode='linear'),
+        template='simple_white',
+        bargap=0
+    )
+    return fig
+
+for i in range(len(df)):
+    fig = plot_bar(df['labels'][i], df['scores'][i], df['sequence'][i])
+    st.plotly_chart(fig)
+
+st.caption("")
+st.markdown("DataFrame retornado:")
 st.write(df)
