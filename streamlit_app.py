@@ -35,7 +35,7 @@ with c1: st.sidebar.image(
     width=50,
 )
 
-predefined-key = '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'
+predefined-key = "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"
 
 API_KEY = st.sidebar.text_input(
     "Coloque sua API do HuggingFace",
